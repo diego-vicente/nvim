@@ -72,6 +72,13 @@ require('lazy').setup({
   -- Detect tabstop and shiftwidth automatically
   'tpope/vim-sleuth',
 
+  -- Some support for extra languages
+  'NoahTheDuke/vim-just',
+  'imsnif/kdl.vim',
+
+  -- Navigation withing tmux
+  'christoomey/vim-tmux-navigator',
+
   -- NOTE: This is where your plugins related to LSP can be installed.
   --  The configuration is done below. Search for lspconfig to find it below.
   {
@@ -129,13 +136,48 @@ require('lazy').setup({
     },
   },
 
+  -- Send code from nvim to tmux
   {
-    -- Theme inspired by Atom
-    'navarasu/onedark.nvim',
+    'jpalardy/vim-slime',
+    config = function ()
+      vim.g.slime_target = 'tmux'
+      vim.g.slime_paste_file = '/tmp/slime_paste'
+
+      vim.keymap.set('v', '<leader>ts', '<Plug>SlimeRegionSend<cr>', { desc = '[T]mux [S]end region' })
+      vim.keymap.set('n', '<leader>ts', '<Plug>SlimeParagraphSend<cr>', { desc = '[T]mux [S]end paragraph' })
+      vim.keymap.set('o', '<leader>ts', '<Plug>SlimeSend<cr>', { desc = '[T]mux [S]end' })
+
+      -- TODO: not working yet
+      -- vim.api.nvim_create_user_command(
+      --   'SlimeOverride_EscapeText_sql',
+      --   function (opts)
+      --     local cmd = 'bq query --use_legacy_sql=false'
+      --     local escaped = opts.fargs[1]:gsub('\'', '"')
+      --     return cmd .. ' \' '.. escaped .. ' \' '
+      --   end,
+      --   { nargs = 1, force = true }
+      -- )
+    end
+  },
+
+  {
+    -- Load the Catppuccin theme
+    "catppuccin/nvim",
+    as = "catppuccin",
     priority = 1000,
     config = function()
-      vim.cmd.colorscheme 'onedark'
+      vim.cmd.colorscheme 'catppuccin'
     end,
+    opts = {
+      flavour = "mocha",
+      term_colors = false,
+      integrations = {
+        cmp = true,
+        gitsigns = true,
+        telescope = true,
+        lualine = true,
+      },
+    },
   },
 
   {
@@ -144,12 +186,23 @@ require('lazy').setup({
     -- See `:help lualine.txt`
     opts = {
       options = {
-        icons_enabled = false,
-        theme = 'onedark',
+        icons_enabled = true,
+        -- theme = 'onedark',
+        theme = 'catppuccin',
         component_separators = '|',
         section_separators = '',
       },
     },
+  },
+
+  {
+    -- A simple and lightweight file explorer based in telescope
+    'nvim-telescope/telescope-file-browser.nvim',
+    dependencies = {
+      'nvim-telescope/telescope.nvim',
+      'nvim-lua/plenary.nvim',
+      'nvim-tree/nvim-web-devicons'
+    }
   },
 
   {
@@ -191,6 +244,31 @@ require('lazy').setup({
     build = ':TSUpdate',
   },
 
+  {
+    -- Enable GitHub Copilot within Neovim
+    'zbirenbaum/copilot.lua',
+    cmd = "Copilot",
+    event = "InsertEnter",
+    opts = {
+      panel = {
+        enabled = true,
+        auto_refresh = false,
+      },
+      suggestion = {
+        enabled = true,
+        auto_trigger = true,
+        keymap = {
+          accept = "<Right>",  -- TODO: include more than one keymap?
+          accept_word = false,
+          accept_line = false,
+          next = "<M-]>",
+          prev = "<M-[>",
+          dismiss = "<C-]>",
+        },
+      },
+    },
+  },
+
   -- NOTE: Next Step on Your Neovim Journey: Add/Configure additional "plugins" for kickstart
   --       These are some example plugins that I've included in the kickstart repository.
   --       Uncomment any of the lines below to enable them.
@@ -212,8 +290,8 @@ require('lazy').setup({
 -- Set highlight on search
 vim.o.hlsearch = false
 
--- Make line numbers default
-vim.wo.number = true
+-- Make relative line numbers default
+vim.wo.relativenumber = true
 
 -- Enable mouse mode
 vim.o.mouse = 'a'
@@ -279,10 +357,26 @@ require('telescope').setup {
       },
     },
   },
+  -- Configure telescope to handle the file browser
+  extensions = {
+    file_browser = {
+      -- disables netrw and use telescope-file-browser in its place
+      hijack_netrw = true,
+      -- mappings = {
+      --   ["i"] = {
+      --     -- your custom insert mode mappings
+      --   },
+      --   ["n"] = {
+      --     -- your custom normal mode mappings
+      --   },
+      -- },
+    },
+  },
 }
 
--- Enable telescope fzf native, if installed
+-- Enable telescope fzf native, if installed, and file-browser
 pcall(require('telescope').load_extension, 'fzf')
+pcall(require('telescope').load_extension, 'file_browser')
 
 -- See `:help telescope.builtin`
 vim.keymap.set('n', '<leader>?', require('telescope.builtin').oldfiles, { desc = '[?] Find recently opened files' })
@@ -295,6 +389,8 @@ vim.keymap.set('n', '<leader>/', function()
   })
 end, { desc = '[/] Fuzzily search in current buffer' })
 
+-- vim.keymap.set('n', '<leader>fb', ':Telescope file_browser path=%:p:h select_buffer=true', { desc = 'Open [F]ile [B]rowser'})
+vim.keymap.set('n', '<leader>fb', require("telescope").extensions.file_browser.file_browser, { desc = 'Open [F]ile [B]rowser'})
 vim.keymap.set('n', '<leader>gf', require('telescope.builtin').git_files, { desc = 'Search [G]it [F]iles' })
 vim.keymap.set('n', '<leader>sf', require('telescope.builtin').find_files, { desc = '[S]earch [F]iles' })
 vim.keymap.set('n', '<leader>sh', require('telescope.builtin').help_tags, { desc = '[S]earch [H]elp' })
@@ -394,6 +490,8 @@ local on_attach = function(_, bufnr)
   nmap('<leader>rn', vim.lsp.buf.rename, '[R]e[n]ame')
   nmap('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction')
 
+  nmap('<leader>gg', ':Git<CR>', 'Open [G]it Status')
+
   nmap('gd', vim.lsp.buf.definition, '[G]oto [D]efinition')
   nmap('gr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
   nmap('gI', vim.lsp.buf.implementation, '[G]oto [I]mplementation')
@@ -419,6 +517,37 @@ local on_attach = function(_, bufnr)
   end, { desc = 'Format current buffer with LSP' })
 end
 
+
+-- Configure the Python LSP to use the .venv in the project if possible
+local get_python_path = function(workspace)
+  local util = require('lspconfig/util')
+  local path = util.path
+  -- Use activated virtualenv.
+  if vim.env.VIRTUAL_ENV then
+    return path.join(vim.env.VIRTUAL_ENV, 'bin', 'python')
+  end
+
+  -- Find and use virtualenv in workspace directory.
+  for _, pattern in ipairs({'*', '.*'}) do
+    local match = vim.fn.glob(path.join(workspace, pattern, 'pyvenv.cfg'))
+    if match ~= '' then
+      return path.join(path.dirname(match), 'bin', 'python')
+    end
+  end
+
+  -- Fallback to system Python.
+  return vim.fn.exepath('python3')
+    or vim.fn.exepath('python')
+    or 'python'
+end
+
+-- This function runs every time the LSP server is initialized.
+--
+-- It can be used to modify the configuration settings that are being passed to the initialization.
+local before_init = function(_, config)
+  config.settings.python.pythonPath = get_python_path(config.root_dir)
+end
+
 -- Enable the following language servers
 --  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
 --
@@ -427,8 +556,8 @@ end
 local servers = {
   -- clangd = {},
   -- gopls = {},
-  -- pyright = {},
-  -- rust_analyzer = {},
+  pyright = {},
+  rust_analyzer = {},
   -- tsserver = {},
 
   lua_ls = {
@@ -458,13 +587,13 @@ mason_lspconfig.setup_handlers {
     require('lspconfig')[server_name].setup {
       capabilities = capabilities,
       on_attach = on_attach,
+      before_init = before_init,
       settings = servers[server_name],
     }
   end,
 }
 
--- [[ Configure nvim-cmp ]]
--- See `:help cmp`
+-- nvim-cmp setup
 local cmp = require 'cmp'
 local luasnip = require 'luasnip'
 require('luasnip.loaders.from_vscode').lazy_load()
@@ -505,10 +634,17 @@ cmp.setup {
       end
     end, { 'i', 's' }),
   },
-  sources = {
-    { name = 'nvim_lsp' },
-    { name = 'luasnip' },
-  },
+  sources = cmp.config.sources({
+    -- Don't suggest Text from nvim_lsp
+    {
+      name = "nvim_lsp",
+      entry_filter = function(entry, _)
+        local text = require("cmp").lsp.CompletionItemKind.Text
+        return entry:get_kind() ~= text
+      end
+    },
+    { name = "luasnip" },
+  }),
 }
 
 -- The line beneath this is called `modeline`. See `:help modeline`
