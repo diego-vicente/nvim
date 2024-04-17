@@ -1,43 +1,4 @@
---[[
-
-=====================================================================
-==================== READ THIS BEFORE CONTINUING ====================
-=====================================================================
-
-Kickstart.nvim is *not* a distribution.
-
-Kickstart.nvim is a template for your own configuration.
-  The goal is that you can read every line of code, top-to-bottom, understand
-  what your configuration is doing, and modify it to suit your needs.
-
-  Once you've done that, you should start exploring, configuring and tinkering to
-  explore Neovim!
-
-  If you don't know anything about Lua, I recommend taking some time to read through
-  a guide. One possible example:
-  - https://learnxinyminutes.com/docs/lua/
-
-  And then you can explore or search through `:help lua-guide`
-
-
-Kickstart Guide:
-
-I have left several `:help X` comments throughout the init.lua
-You should run that command and read that help section for more information.
-
-In addition, I have some `NOTE:` items throughout the file.
-These are for you, the reader to help understand what is happening. Feel free to delete
-them once you know what you're doing, but they should serve as a guide for when you
-are first encountering a few different constructs in your nvim config.
-
-I hope you enjoy your Neovim journey,
-- TJ
-
-P.S. You can delete this when you're done too. It's your config now :)
---]]
--- Set <space> as the leader key
--- See `:help mapleader`
---  NOTE: Must happen before plugins are required (otherwise wrong leader will be used)
+-- Set space as leader key
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
@@ -57,14 +18,8 @@ if not vim.loop.fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
--- NOTE: Here is where you install your plugins.
---  You can configure plugins using the `config` key.
---
---  You can also configure plugins after the setup call,
---    as they will be available in your neovim runtime.
+-- Define all the plugins to be installed
 require('lazy').setup({
-  -- NOTE: First, some plugins that don't require any configuration
-
   -- Git related plugins
   'tpope/vim-fugitive',
   'tpope/vim-rhubarb',
@@ -78,6 +33,9 @@ require('lazy').setup({
 
   -- Navigation withing tmux
   'christoomey/vim-tmux-navigator',
+
+  -- Sync dark/light colorscheme with the OS
+  'cormacrelf/dark-notify',
 
   -- NOTE: This is where your plugins related to LSP can be installed.
   --  The configuration is done below. Search for lspconfig to find it below.
@@ -169,15 +127,18 @@ require('lazy').setup({
       vim.cmd.colorscheme 'catppuccin'
     end,
     opts = {
-      flavour = "mocha",
+      background = {
+        light = "latte",
+        dark = "mocha",
+      },
       term_colors = false,
       integrations = {
         cmp = true,
         gitsigns = true,
         telescope = true,
         lualine = true,
-      },
-    },
+      }
+    }
   },
 
   {
@@ -187,7 +148,6 @@ require('lazy').setup({
     opts = {
       options = {
         icons_enabled = true,
-        -- theme = 'onedark',
         theme = 'catppuccin',
         component_separators = '|',
         section_separators = '',
@@ -208,12 +168,8 @@ require('lazy').setup({
   {
     -- Add indentation guides even on blank lines
     'lukas-reineke/indent-blankline.nvim',
-    -- Enable `lukas-reineke/indent-blankline.nvim`
-    -- See `:help indent_blankline.txt`
-    opts = {
-      char = '┊',
-      show_trailing_blankline_indent = false,
-    },
+    main= 'ibl',
+    opts = { indent = { char = '┊' } },
   },
 
   -- "gc" to comment visual regions/lines
@@ -285,7 +241,6 @@ require('lazy').setup({
 
 -- [[ Setting options ]]
 -- See `:help vim.o`
--- NOTE: You can change these options as you wish!
 
 -- Set highlight on search
 vim.o.hlsearch = false
@@ -592,6 +547,9 @@ mason_lspconfig.setup_handlers {
     }
   end,
 }
+
+-- Set up dark-notify to change themes automatically
+require('dark_notify').run()
 
 -- nvim-cmp setup
 local cmp = require 'cmp'
