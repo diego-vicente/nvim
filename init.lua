@@ -97,7 +97,7 @@ require('lazy').setup({
   -- Send code from nvim to tmux
   {
     'jpalardy/vim-slime',
-    config = function ()
+    config = function()
       vim.g.slime_target = 'tmux'
       vim.g.slime_paste_file = '/tmp/slime_paste'
 
@@ -115,21 +115,21 @@ require('lazy').setup({
       --   end,
       --   { nargs = 1, force = true }
       -- )
-    end
+    end,
   },
 
   {
     -- Load the Catppuccin theme
-    "catppuccin/nvim",
-    as = "catppuccin",
+    'catppuccin/nvim',
+    as = 'catppuccin',
     priority = 1000,
     config = function()
       vim.cmd.colorscheme 'catppuccin'
     end,
     opts = {
       background = {
-        light = "latte",
-        dark = "mocha",
+        light = 'latte',
+        dark = 'mocha',
       },
       term_colors = false,
       integrations = {
@@ -137,8 +137,8 @@ require('lazy').setup({
         gitsigns = true,
         telescope = true,
         lualine = true,
-      }
-    }
+      },
+    },
   },
 
   {
@@ -161,14 +161,14 @@ require('lazy').setup({
     dependencies = {
       'nvim-telescope/telescope.nvim',
       'nvim-lua/plenary.nvim',
-      'nvim-tree/nvim-web-devicons'
-    }
+      'nvim-tree/nvim-web-devicons',
+    },
   },
 
   {
     -- Add indentation guides even on blank lines
     'lukas-reineke/indent-blankline.nvim',
-    main= 'ibl',
+    main = 'ibl',
     opts = { indent = { char = '┊' } },
   },
 
@@ -203,8 +203,8 @@ require('lazy').setup({
   {
     -- Enable GitHub Copilot within Neovim
     'zbirenbaum/copilot.lua',
-    cmd = "Copilot",
-    event = "InsertEnter",
+    cmd = 'Copilot',
+    event = 'InsertEnter',
     opts = {
       panel = {
         enabled = true,
@@ -214,12 +214,12 @@ require('lazy').setup({
         enabled = true,
         auto_trigger = true,
         keymap = {
-          accept = "<Right>",  -- TODO: include more than one keymap?
+          accept = '<Right>', -- TODO: include more than one keymap?
           accept_word = false,
           accept_line = false,
-          next = "<M-]>",
-          prev = "<M-[>",
-          dismiss = "<C-]>",
+          next = '<M-]>',
+          prev = '<M-[>',
+          dismiss = '<C-]>',
         },
       },
     },
@@ -345,7 +345,7 @@ vim.keymap.set('n', '<leader>/', function()
 end, { desc = '[/] Fuzzily search in current buffer' })
 
 -- vim.keymap.set('n', '<leader>fb', ':Telescope file_browser path=%:p:h select_buffer=true', { desc = 'Open [F]ile [B]rowser'})
-vim.keymap.set('n', '<leader>fb', require("telescope").extensions.file_browser.file_browser, { desc = 'Open [F]ile [B]rowser'})
+vim.keymap.set('n', '<leader>fb', require('telescope').extensions.file_browser.file_browser, { desc = 'Open [F]ile [B]rowser' })
 vim.keymap.set('n', '<leader>gf', require('telescope.builtin').git_files, { desc = 'Search [G]it [F]iles' })
 vim.keymap.set('n', '<leader>sf', require('telescope.builtin').find_files, { desc = '[S]earch [F]iles' })
 vim.keymap.set('n', '<leader>sh', require('telescope.builtin').help_tags, { desc = '[S]earch [H]elp' })
@@ -472,10 +472,9 @@ local on_attach = function(_, bufnr)
   end, { desc = 'Format current buffer with LSP' })
 end
 
-
 -- Configure the Python LSP to use the .venv in the project if possible
 local get_python_path = function(workspace)
-  local util = require('lspconfig/util')
+  local util = require 'lspconfig/util'
   local path = util.path
   -- Use activated virtualenv.
   if vim.env.VIRTUAL_ENV then
@@ -483,7 +482,7 @@ local get_python_path = function(workspace)
   end
 
   -- Find and use virtualenv in workspace directory.
-  for _, pattern in ipairs({'*', '.*'}) do
+  for _, pattern in ipairs { '*', '.*' } do
     local match = vim.fn.glob(path.join(workspace, pattern, 'pyvenv.cfg'))
     if match ~= '' then
       return path.join(path.dirname(match), 'bin', 'python')
@@ -491,9 +490,7 @@ local get_python_path = function(workspace)
   end
 
   -- Fallback to system Python.
-  return vim.fn.exepath('python3')
-    or vim.fn.exepath('python')
-    or 'python'
+  return vim.fn.exepath 'python3' or vim.fn.exepath 'python' or 'python'
 end
 
 -- This function runs every time the LSP server is initialized.
@@ -592,17 +589,17 @@ cmp.setup {
       end
     end, { 'i', 's' }),
   },
-  sources = cmp.config.sources({
+  sources = cmp.config.sources {
     -- Don't suggest Text from nvim_lsp
     {
-      name = "nvim_lsp",
+      name = 'nvim_lsp',
       entry_filter = function(entry, _)
-        local text = require("cmp").lsp.CompletionItemKind.Text
+        local text = require('cmp').lsp.CompletionItemKind.Text
         return entry:get_kind() ~= text
-      end
+      end,
     },
-    { name = "luasnip" },
-  }),
+    { name = 'luasnip' },
+  },
 }
 
 -- The line beneath this is called `modeline`. See `:help modeline`
