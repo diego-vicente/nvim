@@ -1,6 +1,18 @@
 return {
-  -- Basic Tim Pope's git plugins
-  'tpope/vim-fugitive',
+  {
+    -- Manage git from the editor
+    'tpope/vim-fugitive',
+    init = function ()
+      vim.keymap.set(
+        'n',
+        '<leader>gg',
+        ':Git<CR>',
+        { desc = '[G]it Status' }
+      )
+    end
+  },
+
+  -- Manage GitHub from the editor
   'tpope/vim-rhubarb',
 
   {
